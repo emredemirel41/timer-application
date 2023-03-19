@@ -6,8 +6,8 @@ import vuetify from 'vite-plugin-vuetify';
 
 export default defineConfig({
     build: {
-        minify: false,
-    },
+        chunkSizeWarningLimit: 4000,
+      },
     plugins: [
         vue(),
         vuetify({ autoImport: true }), // Enabled by default
