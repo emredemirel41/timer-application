@@ -6,11 +6,15 @@ import vuetify from 'vite-plugin-vuetify';
 
 export default defineConfig({
     build: {
-        chunkSizeWarningLimit: 4000,
+        rollupOptions: {
+          output: {
+            manualChunks: {}
+          },
+        },
       },
     plugins: [
         vue(),
-        vuetify(),
+        vuetify({ autoImport: true }), 
         laravel([
             'resources/css/app.css',
             'resources/js/app.js',
