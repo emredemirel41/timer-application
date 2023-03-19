@@ -16,7 +16,7 @@ export default {
     data() {
         return {
             drawer: false,
-            isAuthenticated: true,
+            isAuthenticated: false,
         };
     },
     components: { Login, Home }
