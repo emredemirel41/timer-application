@@ -6,12 +6,15 @@ import vuetify from 'vite-plugin-vuetify';
 
 export default defineConfig({
     build: {
-        minify: 'terser',
         rollupOptions: {
-          output: {
-            manualChunks: {}
-          },
-        },
+            output:{
+                manualChunks(id) {
+                    if (id.includes('node_modules')) {
+                        return id.toString().split('node_modules/')[1].split('/')[0].toString();
+                    }
+                }
+            }
+        }
       },
     plugins: [
         vue(),
