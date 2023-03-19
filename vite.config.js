@@ -10,7 +10,7 @@ export default defineConfig({
       },
     plugins: [
         vue(),
-        vuetify({ autoImport: true }), // Enabled by default
+        vuetify(),
         laravel([
             'resources/css/app.css',
             'resources/js/app.js',
