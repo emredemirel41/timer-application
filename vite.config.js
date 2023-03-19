@@ -8,9 +8,7 @@ export default defineConfig({
     build: {
         rollupOptions: {
             output:{
-                manualChunks: {
-                    ...renderChunks(dependencies),
-                }
+                manualChunks: {}
             }
         }
       },
