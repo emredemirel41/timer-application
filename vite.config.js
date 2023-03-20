@@ -5,13 +5,6 @@ import vuetify from 'vite-plugin-vuetify';
 
 
 export default defineConfig({
-    build: {
-        rollupOptions: {
-            output:{
-                manualChunks: {}
-            }
-        }
-      },
     plugins: [
         vue(),
         vuetify({ autoImport: true }), 
