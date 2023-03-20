@@ -1,7 +1,7 @@
 <template>
     <v-card>
         <v-layout>
-            <v-app-bar :elevation="2" title="Application bar"></v-app-bar>
+            <v-app-bar :elevation="2" title="Application Bar"></v-app-bar>
 
             <v-navigation-drawer>
                 <v-list>
