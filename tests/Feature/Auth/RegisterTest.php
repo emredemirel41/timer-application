@@ -4,10 +4,14 @@ namespace Tests\Feature\Auth;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Facades\Event;
+use App\Events\NewUserRegistered;
+use App\Listeners\SendVerificationEmail;
 use Tests\TestCase;
 
 class RegisterTest extends TestCase
 {
+    use WithFaker;
     /**
      * A basic feature test example.
      *
@@ -121,5 +125,26 @@ class RegisterTest extends TestCase
                 "access_token",
             ]
         ]);
+    }
+
+    public function test_registered_event_triggers_send_welcome_email_listener(){
+        Event::fake();
+
+        $user = [
+            'name' => $this->faker->name,
+            'email' => $this->faker->email,
+            'password' => $this->faker->password,
+        ];
+
+        // Act
+        event(new NewUserRegistered($user));
+
+        // Assert
+        Event::assertDispatched(NewUserRegistered::class);
+        Event::assertDispatched(NewUserRegistered::class, function ($event) use ($user) {
+            return $event->user['email'] === $user['email'];
+        });
+        Event::assertDispatched(SendVerificationEmail::class);
+
     }
 }
