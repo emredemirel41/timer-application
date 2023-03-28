@@ -21,6 +21,9 @@ class EventServiceProvider extends ServiceProvider
         NewUserRegistered::class => [
             SendVerificationEmail::class,
         ],
+        ResetPassword::class => [
+            SendResetTokenEmail::class,
+        ],
     ];
 
     /**

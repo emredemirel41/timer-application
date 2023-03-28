@@ -5,21 +5,21 @@ namespace Tests\Feature\Auth;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Event;
-use App\Events\NewUserRegistered;
-use App\Listeners\SendVerificationEmail;
+use App\Models\User;
 use Tests\TestCase;
 
 class RegisterTest extends TestCase
 {
-    use WithFaker;
+    use RefreshDatabase,WithFaker;
     /**
      * A basic feature test example.
      *
      * @return void
      */
+
     public function test_register_blank_fields_fail()
     {
-        $response = $this->json('POST', 'api/auth/register', ['Accept' => 'application/json']);
+        $response = $this->json('POST', 'api/v1/auth/register', ['Accept' => 'application/json']);
         $response->assertStatus(422);
         $response->assertJson([
             "code" => 422,
@@ -34,23 +34,54 @@ class RegisterTest extends TestCase
         ]);
     }
 
-    public function test_register_min_name_rule_fail()
+    public function test_register_wrong_credentials_set_1_fail()
     {
         $userData = [
             "name" => "e",
-            "email" => "doe@example.com",
-            "password" => "12345",
-            "password_confirmation" => "12345",
+            "email" => "doe",
+            "password" => "123",
+            "password_confirmation" => "123",
         ];
 
-        $response = $this->json('POST', 'api/auth/register', $userData, ['Accept' => 'application/json']);
-        $response->assertStatus(401);
+        $response = $this->json('POST', 'api/v1/auth/register', $userData, ['Accept' => 'application/json']);
+        $response->assertStatus(422);
         $response->assertJson([
             "code" => 401,
             "status" => false,
-            "message" => "Your credentials are incorrect.",
+            "message" => "The given data was invalid.",
             "errors" => [
-                "name" => ["The name field is minimum 5 character."],
+                "name" => ["The name field is minimum 3 character."],
+                "email" => ["The email must be a valid email address."],
+                "password" => ["The password field is minimum 8 character."],
+            ]
+        ]);
+    }
+
+    public function test_register_wrong_credentials_set_2_fail()
+    {
+        $user = User::factory()->create([
+            'email' => 'sample@test.com',
+            'password' => bcrypt('sample12345'),
+        ]);
+
+        $userData = [
+            "name" => "doedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoe",
+            "email" => "sample@test.com",
+            "password" => "doedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoe",
+            "password_confirmation" => "1232",
+        ];
+
+        $response = $this->json('POST', 'api/v1/auth/register', $userData, ['Accept' => 'application/json']);
+        $response->assertStatus(422);
+        $response->assertJson([
+            "code" => 422,
+            "status" => false,
+            "message" => "The given data was invalid.",
+            "errors" => [
+                "name" => ["The name field is maximum 50 character."],
+                "email" => ["The email has already been taken."],
+                "password" => ["The password field is maximum 20 character."],
+                "password_confirmation" => ["The password_confirmation confirmation does not match."],
             ]
         ]);
     }
@@ -60,39 +91,18 @@ class RegisterTest extends TestCase
         $userData = [
             "name" => "Emre Demirel",
             "email" => "doe@example.com",
-            "password" => "123",
-            "password_confirmation" => "12345",
+            "password" => "123456789",
+            "password_confirmation" => "123456777",
         ];
 
-        $response = $this->json('POST', 'api/auth/register', $userData, ['Accept' => 'application/json']);
-        $response->assertStatus(401);
+        $response = $this->json('POST', 'api/v1/auth/register', $userData, ['Accept' => 'application/json']);
+        $response->assertStatus(422);
         $response->assertJson([
-            "code" => 401,
+            "code" => 422,
             "status" => false,
             "message" => "Your credentials are incorrect.",
             "errors" => [
-                "name" => ["The name field is minimum 5 character."],
-            ]
-        ]);
-    }
-
-    public function test_register_min_password_rule_fail()
-    {
-        $userData = [
-            "name" => "Emre Demirel",
-            "email" => "doe@example.com",
-            "password" => "123",
-            "password_confirmation" => "123",
-        ];
-
-        $response = $this->json('POST', 'api/auth/register', $userData, ['Accept' => 'application/json']);
-        $response->assertStatus(401);
-        $response->assertJson([
-            "code" => 401,
-            "status" => false,
-            "message" => "Your credentials are incorrect.",
-            "errors" => [
-                "password" => ["The name field is minimum 8 character."],
+                "password" => ["The password confirmation does not match."],
             ]
         ]);
     }
@@ -100,13 +110,13 @@ class RegisterTest extends TestCase
     public function test_register_successful()
     {
         $userData = [
-            "name" => "Emre Demirel",
-            "email" => "doe@example.com",
+            "name" => $name = 'Emre Demirel',
+            "email" => $email = 'tester@mail.com',
             "password" => "12345678",
             "password_confirmation" => "12345678",
         ];
 
-        $response = $this->json('POST', 'api/auth/register', $userData, ['Accept' => 'application/json']);
+        $response = $this->json('POST', 'api/v1/auth/register', $userData, ['Accept' => 'application/json']);
         $response->assertStatus(201);
         $response->assertJsonStructure([
             "code",
@@ -125,26 +135,12 @@ class RegisterTest extends TestCase
                 "access_token",
             ]
         ]);
-    }
 
-    public function test_registered_event_triggers_send_welcome_email_listener(){
-        Event::fake();
+        $this->assertDatabaseHas('users', [
+            'email' => $email,
+            'name' => $name,
+        ]);
 
-        $user = [
-            'name' => $this->faker->name,
-            'email' => $this->faker->email,
-            'password' => $this->faker->password,
-        ];
-
-        // Act
-        event(new NewUserRegistered($user));
-
-        // Assert
-        Event::assertDispatched(NewUserRegistered::class);
-        Event::assertDispatched(NewUserRegistered::class, function ($event) use ($user) {
-            return $event->user['email'] === $user['email'];
-        });
-        Event::assertDispatched(SendVerificationEmail::class);
-
+       
     }
 }

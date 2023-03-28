@@ -2,13 +2,17 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Events\ResetPassword;
+use App\Listeners\SendResetTokenEmail;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
 
-class ForgetPassword extends TestCase
+class ForgetPasswordTest extends TestCase
 {
+    use RefreshDatabase,WithFaker;
     /**
      * A basic feature test example.
      *
@@ -16,7 +20,7 @@ class ForgetPassword extends TestCase
      */
     public function test_forget_password_blank_fields_fail()
     {
-        $response = $this->json('POST', 'api/auth/forget-password', ['Accept' => 'application/json']);
+        $response = $this->json('POST', 'api/v1/auth/forget-password', ['Accept' => 'application/json']);
         $response->assertStatus(422);
         $response->assertJson([
             "code" => 422,
@@ -34,7 +38,7 @@ class ForgetPassword extends TestCase
             "email" => "doe@example.com",
         ];
 
-        $response = $this->json('POST', 'api/auth/forget_password', $userData, ['Accept' => 'application/json']);
+        $response = $this->json('POST', 'api/v1/auth/forget-password', $userData, ['Accept' => 'application/json']);
         $response->assertStatus(401);
         $response->assertJson([
             "code" => 401,
@@ -44,20 +48,19 @@ class ForgetPassword extends TestCase
         ]);
     }
 
-
     public function test_forget_password_successful()
     {
 
         $user = User::factory()->create([
             'email' => 'sample@test.com',
-            'password' => bcrypt('sample123'),
+            'password' => bcrypt('sample12345'),
         ]);
 
         $userData = [
             "email" => "sample@test.com",
         ];
 
-        $response = $this->json('POST', 'api/auth/forget_password', $userData, ['Accept' => 'application/json']);
+        $response = $this->json('POST', 'api/v1/auth/forget-password', $userData, ['Accept' => 'application/json']);
         $response->assertStatus(200);
         $response->assertJson([
             "code" => 200,
@@ -65,5 +68,7 @@ class ForgetPassword extends TestCase
             "message" => "Your email has been sent.",
             "data" => null
         ]);
+
     }
+ 
 }
