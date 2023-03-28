@@ -120,14 +120,11 @@ class ResetPasswordTest extends TestCase
             'code' => $code,
             'created_at' => now(),
         ]);
-
-
-
         $userData = [
             "token" => $code,
-            "email" => "sample@test.com",
+            "email" => $user->email,
             "password" => $newPassword = "999888777",
-            "password_confirmation" => "999888777",
+            "password_confirmation" => $newPassword,
         ];
 
         $response = $this->json('POST', 'api/v1/auth/reset-password', $userData, ['Accept' => 'application/json']);
