@@ -33,6 +33,6 @@ Route::name('v1.')->prefix('v1')->group(function () {
 
     //Authenticated Routes
     Route::middleware('auth:sanctum')->group(function () {
-
+        Route::post('auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
     });
 });
