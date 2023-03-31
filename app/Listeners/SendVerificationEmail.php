@@ -26,6 +26,6 @@ class SendVerificationEmail
      */
     public function handle(NewUserRegistered $event)
     {
-        //
+        $event->user->notify(new VerifyEmailNotification);
     }
 }

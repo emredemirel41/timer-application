@@ -20,7 +20,7 @@ trait ApiResponser
             'code' => $code,
             'status' => false,
             'message' => $message,
-            'data' => $data
+            'errors' => $data
         ], $code);
     }
 }

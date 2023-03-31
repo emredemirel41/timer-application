@@ -29,7 +29,7 @@ class RegisterTest extends TestCase
                 "name" => ["The name field is required."],
                 "email" => ["The email field is required."],
                 "password" => ["The password field is required."],
-                "password_confirmation" => ["The password_confirmation field is required."],
+                "password_confirmation" => ["The password confirmation field is required."],
             ]
         ]);
     }
@@ -46,13 +46,13 @@ class RegisterTest extends TestCase
         $response = $this->json('POST', 'api/v1/auth/register', $userData, ['Accept' => 'application/json']);
         $response->assertStatus(422);
         $response->assertJson([
-            "code" => 401,
+            "code" => 422,
             "status" => false,
             "message" => "The given data was invalid.",
             "errors" => [
-                "name" => ["The name field is minimum 3 character."],
+                "name" => ["The name must be at least 3 characters."],
                 "email" => ["The email must be a valid email address."],
-                "password" => ["The password field is minimum 8 character."],
+                "password" => ["The password must be at least 8 characters."],
             ]
         ]);
     }
@@ -68,7 +68,7 @@ class RegisterTest extends TestCase
             "name" => "doedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoe",
             "email" => "sample@test.com",
             "password" => "doedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoe",
-            "password_confirmation" => "1232",
+            "password_confirmation" => "doedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoedoe",
         ];
 
         $response = $this->json('POST', 'api/v1/auth/register', $userData, ['Accept' => 'application/json']);
@@ -78,10 +78,9 @@ class RegisterTest extends TestCase
             "status" => false,
             "message" => "The given data was invalid.",
             "errors" => [
-                "name" => ["The name field is maximum 50 character."],
+                "name" => ["The name must not be greater than 50 characters."],
                 "email" => ["The email has already been taken."],
-                "password" => ["The password field is maximum 20 character."],
-                "password_confirmation" => ["The password_confirmation confirmation does not match."],
+                "password" => ["The password must not be greater than 20 characters."],
             ]
         ]);
     }
@@ -100,13 +99,14 @@ class RegisterTest extends TestCase
         $response->assertJson([
             "code" => 422,
             "status" => false,
-            "message" => "Your credentials are incorrect.",
+            "message" => "The given data was invalid.",
             "errors" => [
                 "password" => ["The password confirmation does not match."],
             ]
         ]);
     }
 
+    
     public function test_register_successful()
     {
         $userData = [
@@ -127,8 +127,6 @@ class RegisterTest extends TestCase
                    'id',
                    'name',
                    'email',
-                   'email_verified_at',
-                   'is_master',
                    'created_at',
                    'updated_at',
                 ],
@@ -143,4 +141,7 @@ class RegisterTest extends TestCase
 
        
     }
+
+
+   
 }

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use App\Events\NewUserRegistered;
 
 class AuthController extends Controller
 {
@@ -19,9 +20,10 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:50',
+            'name' => 'required|string|min:3|max:50',
             'email' => 'required|string|email|unique:users,email|max:255',
-            'password' => 'required|string|min:8|max:20',
+            'password' => 'required|string|min:8|max:20|confirmed',
+            'password_confirmation' => 'required'
         ]);
 
         if ($validator->fails()) {
@@ -34,8 +36,11 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
+        //Register Event Triggered
+        event(new NewUserRegistered($user));
+
         $data['user'] =  $user;
-        $data['access_token'] =  $user->createToken('TestCaseApp')->plainTextToken;
+        $data['access_token'] =  $user->createToken('RemolyApp')->plainTextToken;
 
         return $this->successResponse($data, 'User created successfully',201);
     }
