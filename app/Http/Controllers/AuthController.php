@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use App\Events\NewUserRegistered;
+use App\Notifications\VerifyEmailNotification;
 
 class AuthController extends Controller
 {
@@ -36,12 +37,11 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        //Register Event Triggered
-        event(new NewUserRegistered($user));
-
         $data['user'] =  $user;
         $data['access_token'] =  $user->createToken('RemolyApp')->plainTextToken;
 
+        event(new NewUserRegistered($user)); //Register Event Triggered
+    
         return $this->successResponse($data, 'User created successfully',201);
     }
 
@@ -55,7 +55,7 @@ class AuthController extends Controller
     {
         $request->validate([
             'email' => 'required|string|email|max:255',
-            'password' => 'required|string|min:8|max:255',
+            'password' => 'required|string|min:8|max:20',
         ]);
 
         if (!Auth::attempt($request->only('email', 'password'))) {

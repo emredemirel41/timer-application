@@ -3,10 +3,11 @@
 namespace App\Listeners;
 
 use App\Events\NewUserRegistered;
+use App\Notifications\VerifyEmailNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 
-class SendVerificationEmail
+class SendVerificationEmail implements ShouldQueue
 {
     /**
      * Create the event listener.
@@ -24,7 +25,7 @@ class SendVerificationEmail
      * @param  \App\Events\NewUserRegistered  $event
      * @return void
      */
-    public function handle(NewUserRegistered $event)
+    public function shouldQueue(NewUserRegistered $event)
     {
         $event->user->notify(new VerifyEmailNotification);
     }
