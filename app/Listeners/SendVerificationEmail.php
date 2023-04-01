@@ -4,11 +4,14 @@ namespace App\Listeners;
 
 use App\Events\NewUserRegistered;
 use App\Notifications\VerifyEmailNotification;
+use App\Traits\EmailVerificationHelper;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Support\Facades\DB;
 
 class SendVerificationEmail implements ShouldQueue
 {
+    use EmailVerificationHelper;
     /**
      * Create the event listener.
      *
@@ -25,8 +28,10 @@ class SendVerificationEmail implements ShouldQueue
      * @param  \App\Events\NewUserRegistered  $event
      * @return void
      */
-    public function shouldQueue(NewUserRegistered $event)
+    public function handle(NewUserRegistered $event)
     {
-        $event->user->notify(new VerifyEmailNotification);
+        $token = $this->createEmailVerificationToken($event->user->email);
+        $url = '/email-verification?email='.$event->user->email.'&token='.$token;
+        $event->user->notify(new VerifyEmailNotification($url));
     }
 }

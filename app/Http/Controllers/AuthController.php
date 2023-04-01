@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use App\Events\NewUserRegistered;
-use App\Notifications\VerifyEmailNotification;
+use App\Http\Resources\User\UserResource;
 
 class AuthController extends Controller
 {
@@ -37,7 +37,7 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        $data['user'] =  $user;
+        $data['user'] =  new UserResource($user);
         $data['access_token'] =  $user->createToken('RemolyApp')->plainTextToken;
 
         event(new NewUserRegistered($user)); //Register Event Triggered
@@ -53,25 +53,25 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'email' => 'required|string|email|max:255',
             'password' => 'required|string|min:8|max:20',
         ]);
 
+        if ($validator->fails()) {
+            return $this->errorResponse('The given data was invalid.', 422, $validator->errors());
+        }
+
         if (!Auth::attempt($request->only('email', 'password'))) {
-            return response()->json([
-                'message' => 'Invalid credentials'
-            ], 401);
+            return $this->errorResponse('These credentials do not match our records.', 401, null);
         }
 
         $user = User::where('email', $request->email)->first();
 
-        $token = $user->createToken('authToken')->plainTextToken;
+        $data['user'] =  new UserResource($user);
+        $data['access_token'] =  $user->createToken('RemolyApp')->plainTextToken;
 
-        return response()->json([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-        ]);
+        return $this->successResponse($data, 'User login successfully',200);
     }
 
     /**
@@ -88,4 +88,5 @@ class AuthController extends Controller
             'message' => 'Logged out'
         ]);
     }
+
 }

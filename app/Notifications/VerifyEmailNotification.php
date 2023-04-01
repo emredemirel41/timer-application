@@ -16,9 +16,12 @@ class VerifyEmailNotification extends Notification implements ShouldQueue
      *
      * @return void
      */
-    public function __construct()
+
+    private $url;
+
+    public function __construct($url)
     {
-        //
+        $this->url = $url;
     }
 
     /**
@@ -41,8 +44,9 @@ class VerifyEmailNotification extends Notification implements ShouldQueue
     public function toMail($notifiable)
     {
         return (new MailMessage)
-                    ->line('The introduction to the notification.')
-                    ->action('Notification Action', url('/'))
+                    ->subject('Verify your email address')
+                    ->line('Please click the following link to verify your email address or press button.')
+                    ->action('Verify Email', url($this->url))
                     ->line('Thank you for using our application!');
     }
 
